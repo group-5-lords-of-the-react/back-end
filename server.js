@@ -406,23 +406,3 @@ server.listen(PORT, () => {
 
 })
 
-
-function HomeHandler(res, req) {
-
-    res.status(200).send('Welcome to the home page!');
-}
-
-// function DefaultHandler(res, req) {
-
-//     res.status(404).send('Default reoute')
-
-// }
-
-
-function errorHandler(error, req, res) {
-    const err = {
-        status: 500,
-        message: error
-    }
-    res.status(500).send(err);
-}
