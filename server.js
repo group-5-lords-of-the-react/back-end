@@ -10,7 +10,8 @@ const axios = require('axios');
 server.use(express.json())
 let PORT = 3002;
 // const apiKey = process.env.APIkey;
-// const client = new pg.Client(process.env.DATABASE_URL)
+ const client = new pg.Client(process.env.DATABASE_URL)
+ client.connect()
 
 //server.get('/', HomeHandler);
 // server.get('*', DefaultHandler);
@@ -35,7 +36,7 @@ server.get('/Listrestaurants', async function Listrestaurants(req, res) {
             lang: 'en_US'
         },
         headers: {
-            'X-RapidAPI-Key': '3fecb09eaemsh185e8698632f59ep1cca9bjsn26cc8274613f',
+            'X-RapidAPI-Key': process.env.APIKEY,
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
           }
     }
@@ -60,7 +61,7 @@ server.get('/getResturauntById', async function (req, res) {
             lang: 'en_US'
         },
         headers: {
-            'X-RapidAPI-Key': '3fecb09eaemsh185e8698632f59ep1cca9bjsn26cc8274613f',
+            'X-RapidAPI-Key': process.env.APIKEY,
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
           }
     };
@@ -108,7 +109,7 @@ server.post('/restaurants', async function (req, res) {
                 lang: 'en_US'
             },
             headers: {
-                'X-RapidAPI-Key': '3fecb09eaemsh185e8698632f59ep1cca9bjsn26cc8274613f',
+                'X-RapidAPI-Key': process.env.APIKEY,
                 'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
               }
         };
@@ -137,7 +138,7 @@ async function HomeHandler(req, res){
             lunit: 'km',
         },
         headers: {
-            'X-RapidAPI-Key': '3fecb09eaemsh185e8698632f59ep1cca9bjsn26cc8274613f',
+            'X-RapidAPI-Key': process.env.APIKEY,
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
           }
     };
@@ -201,4 +202,3 @@ server.listen(PORT, () => {
 
 
 })
-
