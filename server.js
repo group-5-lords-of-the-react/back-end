@@ -35,7 +35,7 @@ server.get('/Listrestaurants', async function Listrestaurants(req, res) {
             lang: 'en_US'
         },
         headers: {
-            'X-RapidAPI-Key': '1a821d29fcmsh97ccbc06ad20fe8p1ec809jsn98de1f3b43cc',
+            'X-RapidAPI-Key': '9b0bd98b4cmsh720a4ae41e144d4p1b6b28jsnc7c32999dc20',
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
         }
     }
@@ -61,7 +61,7 @@ server.get('/RestaurantDetails', async function (req, res) {
             lang: 'en_US'
         },
         headers: {
-            'X-RapidAPI-Key': '1a821d29fcmsh97ccbc06ad20fe8p1ec809jsn98de1f3b43cc',
+            'X-RapidAPI-Key': '9b0bd98b4cmsh720a4ae41e144d4p1b6b28jsnc7c32999dc20',
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
         }
     };
@@ -94,7 +94,7 @@ server.post('/restaurants', async function (req, res) {
                 lang: 'en_US'
             },
             headers: {
-                'X-RapidAPI-Key': '1a821d29fcmsh97ccbc06ad20fe8p1ec809jsn98de1f3b43cc',
+                'X-RapidAPI-Key': '9b0bd98b4cmsh720a4ae41e144d4p1b6b28jsnc7c32999dc20',
                 'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
             }
         };
@@ -119,11 +119,11 @@ async function HomeHandler(req, res){
             latitude:lat,
             longitude:long,
             limit: '30',
-            distance: '6',
+            distance: '12',
             lunit: 'km',
         },
         headers: {
-            'X-RapidAPI-Key': '1a821d29fcmsh97ccbc06ad20fe8p1ec809jsn98de1f3b43cc',
+            'X-RapidAPI-Key': '9b0bd98b4cmsh720a4ae41e144d4p1b6b28jsnc7c32999dc20',
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
         }
     };
@@ -137,6 +137,7 @@ async function HomeHandler(req, res){
         let mapResult = data.map(item => {
             if (item.photo && item.photo.images && item.photo.images.original) {
                 let singleresult = new AmmanRestaurant(
+                    item.location_id,
                     item.name,
                     item.photo.images.original.url,
                     item.rating,
@@ -162,7 +163,8 @@ async function HomeHandler(req, res){
     }
 }
 
-function AmmanRestaurant(name, photo, rating, distance, description, web_url, phone, website, address, cuisine, hours) {
+function AmmanRestaurant(location_id,name, photo, rating, distance, description, web_url, phone, website, address, cuisine, hours) {
+    this.location_id = location_id;
     this.name = name;
     this.photo = photo;
     this.rating = rating;
