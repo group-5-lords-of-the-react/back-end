@@ -1,27 +1,29 @@
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS restaurant_details;
 
-CREATE TABLE users (
-id SERIAL PRIMARY KEY,
-location_id VARCHAR(255) NOT NULL
-),
-
-DROP TABLE IF EXISTS restaurant_rating;
-
-CREATE TABLE restaurant_rating (
-restaurant_id VARCHAR(255) PRIMARY KEY,
-base_rating FLOAT,
-user_reviews INTEGER,
-site_reviews INTEGER
+CREATE TABLE restaurant_details (
+  r_location_id INTEGER PRIMARY KEY,
+  r_image VARCHAR(255),
+  r_name VARCHAR(255),
+  r_address VARCHAR(255),
+  r_max_reservation INTEGER,
+  r_reservation_cost FLOAT,
+  r_reservation_count INTEGER
 );
 
 DROP TABLE IF EXISTS restaurant_reservation;
 
 CREATE TABLE restaurant_reservation (
-restaurant_id VARCHAR(255) PRIMARY KEY,
-email VARCHAR(255),
-restaurant_name VARCHAR(255),
-max_reservations INTEGER,
-current_reservations INTEGER,
-reservation_time TIMESTAMP,
-reservation_cost FLOAT DEFAULT 30
+  r_location_id INTEGER REFERENCES restaurant_details (r_location_id),
+  r_reservation_time DATE,
+  r_actual_cost FLOAT
+);
+
+DROP TABLE IF EXISTS user_comments;
+
+CREATE TABLE user_comments (
+  potato SERIAL PRIMARY KEY,
+  email VARCHAR(255),
+  location_id VARCHAR(255),
+  comments VARCHAR(255),
+  rating FLOAT
 );
