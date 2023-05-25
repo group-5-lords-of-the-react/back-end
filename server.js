@@ -10,7 +10,8 @@ const axios = require('axios');
 server.use(express.json())
 let PORT = 3008;
 // const apiKey = process.env.APIkey;
-// const client = new pg.Client(process.env.DATABASE_URL)
+ const client = new pg.Client(process.env.DATABASE_URL)
+ client.connect()
 
 //server.get('/', HomeHandler);
 // server.get('*', DefaultHandler);
@@ -35,9 +36,9 @@ server.get('/Listrestaurants', async function Listrestaurants(req, res) {
             lang: 'en_US'
         },
         headers: {
-            'X-RapidAPI-Key': '9b0bd98b4cmsh720a4ae41e144d4p1b6b28jsnc7c32999dc20',
+            'X-RapidAPI-Key': process.env.APIKEY,
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-        }
+          }
     }
 
     try {
@@ -49,35 +50,49 @@ server.get('/Listrestaurants', async function Listrestaurants(req, res) {
     }
 });
 
-server.get('/RestaurantDetails', async function (req, res) {
-
-
+server.get('/getResturauntById', async function (req, res) {
+    const {location} = req.query;
     const options = {
         method: 'GET',
         url: 'https://travel-advisor.p.rapidapi.com/restaurants/get-details',
         params: {
-            location_id: '25174432',
+            location_id: location,
             currency: 'all',
             lang: 'en_US'
         },
         headers: {
-            'X-RapidAPI-Key': '1a821d29fcmsh97ccbc06ad20fe8p1ec809jsn98de1f3b43cc',
+            'X-RapidAPI-Key': process.env.APIKEY,
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-        }
+          }
     };
 
     try {
         const response = await axios.request(options);
-        console.log(response.data);
-        res.send(response.data)
+
+                let singleresult = new AmmanRestaurant(
+                    response.data.location_id,
+                    response.data.name,
+                    response.data.photo.images.original.url,
+                    response.data.rating,
+                    response.data.distance,
+                    response.data.description,
+                    response.data.web_url,
+                    response.data.phone,
+                    response.data.website,
+                    response.data.address,
+                    response.data.cuisine,
+                    response.data.hours
+                );
+            
+        res.send(singleresult);
     } catch (error) {
         console.error(error);
+        res.status(500).send(error);
     }
-
 });
 
 server.post('/restaurants', async function (req, res) {
-    const { city, longitude, latitude } = req.body;
+    const { city} = req.body;
 
     try {
         const options = {
@@ -94,9 +109,9 @@ server.post('/restaurants', async function (req, res) {
                 lang: 'en_US'
             },
             headers: {
-                'X-RapidAPI-Key': '1a821d29fcmsh97ccbc06ad20fe8p1ec809jsn98de1f3b43cc',
+                'X-RapidAPI-Key': process.env.APIKEY,
                 'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-            }
+              }
         };
 
         const response = await axios.request(options);
@@ -119,13 +134,13 @@ async function HomeHandler(req, res){
             latitude:lat,
             longitude:long,
             limit: '30',
-            distance: '6',
+            distance: '12',
             lunit: 'km',
         },
         headers: {
-            'X-RapidAPI-Key': '1a821d29fcmsh97ccbc06ad20fe8p1ec809jsn98de1f3b43cc',
+            'X-RapidAPI-Key': process.env.APIKEY,
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-        }
+          }
     };
 
     try {
@@ -137,6 +152,7 @@ async function HomeHandler(req, res){
         let mapResult = data.map(item => {
             if (item.photo && item.photo.images && item.photo.images.original) {
                 let singleresult = new AmmanRestaurant(
+                    item.location_id,
                     item.name,
                     item.photo.images.original.url,
                     item.rating,
@@ -162,7 +178,8 @@ async function HomeHandler(req, res){
     }
 }
 
-function AmmanRestaurant(name, photo, rating, distance, description, web_url, phone, website, address, cuisine, hours) {
+function AmmanRestaurant(location_id,name, photo, rating, distance, description, web_url, phone, website, address, cuisine, hours) {
+    this.location_id = location_id;
     this.name = name;
     this.photo = photo;
     this.rating = rating;
@@ -185,4 +202,3 @@ server.listen(PORT, () => {
 
 
 })
-
