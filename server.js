@@ -35,9 +35,9 @@ server.get('/Listrestaurants', async function Listrestaurants(req, res) {
             lang: 'en_US'
         },
         headers: {
-            'X-RapidAPI-Key': '9b0bd98b4cmsh720a4ae41e144d4p1b6b28jsnc7c32999dc20',
+            'X-RapidAPI-Key': '3fecb09eaemsh185e8698632f59ep1cca9bjsn26cc8274613f',
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-        }
+          }
     }
 
     try {
@@ -49,35 +49,49 @@ server.get('/Listrestaurants', async function Listrestaurants(req, res) {
     }
 });
 
-server.get('/RestaurantDetails', async function (req, res) {
-
-
+server.get('/getResturauntById', async function (req, res) {
+    const {location} = req.query;
     const options = {
         method: 'GET',
         url: 'https://travel-advisor.p.rapidapi.com/restaurants/get-details',
         params: {
-            location_id: '25174432',
+            location_id: location,
             currency: 'all',
             lang: 'en_US'
         },
         headers: {
-            'X-RapidAPI-Key': '9b0bd98b4cmsh720a4ae41e144d4p1b6b28jsnc7c32999dc20',
+            'X-RapidAPI-Key': '3fecb09eaemsh185e8698632f59ep1cca9bjsn26cc8274613f',
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-        }
+          }
     };
 
     try {
         const response = await axios.request(options);
-        console.log(response.data);
-        res.send(response.data)
+
+                let singleresult = new AmmanRestaurant(
+                    response.data.location_id,
+                    response.data.name,
+                    response.data.photo.images.original.url,
+                    response.data.rating,
+                    response.data.distance,
+                    response.data.description,
+                    response.data.web_url,
+                    response.data.phone,
+                    response.data.website,
+                    response.data.address,
+                    response.data.cuisine,
+                    response.data.hours
+                );
+            
+        res.send(singleresult);
     } catch (error) {
         console.error(error);
+        res.status(500).send(error);
     }
-
 });
 
 server.post('/restaurants', async function (req, res) {
-    const { city, longitude, latitude } = req.body;
+    const { city} = req.body;
 
     try {
         const options = {
@@ -94,9 +108,9 @@ server.post('/restaurants', async function (req, res) {
                 lang: 'en_US'
             },
             headers: {
-                'X-RapidAPI-Key': '9b0bd98b4cmsh720a4ae41e144d4p1b6b28jsnc7c32999dc20',
+                'X-RapidAPI-Key': '3fecb09eaemsh185e8698632f59ep1cca9bjsn26cc8274613f',
                 'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-            }
+              }
         };
 
         const response = await axios.request(options);
@@ -123,9 +137,9 @@ async function HomeHandler(req, res){
             lunit: 'km',
         },
         headers: {
-            'X-RapidAPI-Key': '9b0bd98b4cmsh720a4ae41e144d4p1b6b28jsnc7c32999dc20',
+            'X-RapidAPI-Key': '3fecb09eaemsh185e8698632f59ep1cca9bjsn26cc8274613f',
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-        }
+          }
     };
 
     try {
