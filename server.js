@@ -18,6 +18,7 @@ server.post('/addReview',addReviewHandler);
 server.post('/addSubmit',addSubmitHandler);
 server.post('/addReview',addReviewHandler);
 server.get('/getReviewsById', getReviewsByIdHandler);
+server.post('/addReview',addReviewHandler);
 
 server.get('/Listrestaurants', async function Listrestaurants(req, res) {
 
