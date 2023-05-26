@@ -21,7 +21,7 @@ CREATE TABLE restaurant_reservation (
 DROP TABLE IF EXISTS user_comments;
 
 CREATE TABLE user_comments (
-  potato SERIAL PRIMARY KEY,
+  serial_identifier SERIAL PRIMARY KEY,
   email VARCHAR(255),
   location_id VARCHAR(255),
   comments VARCHAR(255),
