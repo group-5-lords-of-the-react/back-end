@@ -9,14 +9,12 @@ require('dotenv').config();
 const axios = require('axios');
 server.use(express.json())
 let PORT = 3002;
-// const apiKey = process.env.APIkey;
  const client = new pg.Client(process.env.DATABASE_URL)
  client.connect()
 
-//server.get('/', HomeHandler);
-// server.get('*', DefaultHandler);
-
 server.get('/', HomeHandler);
+server.get('/getReviewsById', getReviewsByIdHandler);
+server.post('/addReview',addReviewHandler);
 
 server.get('/Listrestaurants', async function Listrestaurants(req, res) {
 
@@ -123,7 +121,45 @@ server.post('/restaurants', async function (req, res) {
     }
 });
 
+function getReviewsByIdHandler(req, res) {
+    const location_id = req.query.location_id;
+    console.log(req.query.location_id);
+    const sql = `SELECT * FROM user_comments WHERE location_id='${location_id}';`
+    client.query(sql)
+        .then(data => {
+            res.send(data.rows)
+        })
+        .catch(error => {
+            errorHandler(error, req, res);
+        })
+}
  
+function addReviewHandler(req, res) {
+    const review = req.body;
+    console.log(review);
+
+    const sql = `INSERT INTO user_comments (email, location_id, comments, rating)
+    VALUES ($1, $2, $3, $4);`
+    const values = [review.email, review.location_id, review.comments, review.rating];
+    client.query(sql, values)
+
+        .then(data => {
+            const sql = `SELECT * FROM user_comments WHERE location_id='${review.location_id}';`
+            client.query(sql)
+                .then(allData => {
+                    res.send(allData.rows)
+                })
+
+                .catch(error => {
+                    errorHandler(error, req, res)
+                })
+        })
+
+        .catch((error) => {
+            errorHandler(error, req, res)
+        })
+}
+
 async function HomeHandler(req, res){
 
     const {lat,long} = req.query;
@@ -193,7 +229,9 @@ function AmmanRestaurant(location_id,name, photo, rating, distance, description,
     this.hours = hours;
 }
 
-
+function errorHandler  (err,req,res){
+    res.status(500).send(err);
+}
 
 
 server.listen(PORT, () => {
