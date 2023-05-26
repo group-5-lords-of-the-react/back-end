@@ -15,6 +15,7 @@ let PORT = 3002;
 server.get('/', HomeHandler);
 server.get('/getReviewsById', getReviewsByIdHandler);
 server.post('/addReview',addReviewHandler);
+server.post('/addSubmit',addSubmitHandler);
 
 server.get('/Listrestaurants', async function Listrestaurants(req, res) {
 
@@ -213,6 +214,11 @@ async function HomeHandler(req, res){
         res.status(500).send(error);
     }
 }
+
+function addSubmitHandler(req,res){
+    const sql=`SELECT * FROM restaurant_reservatin INNER JOIN restaurant_details`
+}
+
 
 function AmmanRestaurant(location_id,name, photo, rating, distance, description, web_url, phone, website, address, cuisine, hours) {
     this.location_id = location_id;

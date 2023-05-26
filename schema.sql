@@ -16,7 +16,8 @@ CREATE TABLE restaurant_reservation (
   serial_identifier SERIAL PRIMARY KEY,
   location_id INTEGER REFERENCES restaurant_details(r_location_id),
   r_reservation_time DATE,
-  r_actual_cost FLOAT
+  r_actual_cost FLOAT,
+  no_people_reservation INTEGER
 );
 
 DROP TABLE IF EXISTS user_comments;
@@ -28,3 +29,4 @@ CREATE TABLE user_comments (
   comments VARCHAR(255),
   rating FLOAT
 );
+ 
