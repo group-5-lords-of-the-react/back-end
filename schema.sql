@@ -29,4 +29,11 @@ CREATE TABLE user_comments (
   comments VARCHAR(255),
   rating FLOAT
 );
- 
+
+DROP TABLE IF EXISTS favourite_list;
+
+CREATE TABLE user_comments (
+serial_identifier SERIAL PRIMARY KEY,
+location_id VARCHAR(255),
+email VARCHAR(255)
+);

@@ -16,9 +16,6 @@ server.get('/', HomeHandler);
 server.get('/getReviewsById', getReviewsByIdHandler);
 server.post('/addReview',addReviewHandler);
 server.post('/addSubmit',addSubmitHandler);
-server.post('/addReview',addReviewHandler);
-server.get('/getReviewsById', getReviewsByIdHandler);
-server.post('/addReview',addReviewHandler);
 
 server.get('/Listrestaurants', async function Listrestaurants(req, res) {
 
@@ -52,7 +49,7 @@ server.get('/Listrestaurants', async function Listrestaurants(req, res) {
     }
 });
 
-server.get('/getResturauntById', async function (req, res) {
+async function getResturauntById (req, res) {
     const {location} = req.query;
     const options = {
         method: 'GET',
@@ -91,7 +88,7 @@ server.get('/getResturauntById', async function (req, res) {
         console.error(error);
         res.status(500).send(error);
     }
-});
+}
 
 server.post('/restaurants', async function (req, res) {
     const { city} = req.body;
@@ -124,6 +121,24 @@ server.post('/restaurants', async function (req, res) {
         res.sendStatus(500);
     }
 });
+
+function addFavouriteHandler (req,res){
+    //recieve location_id
+    //request to get details based on location_id (call getResturauntById ??)
+    // const newFav = req.body;
+    // const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count) VALUES ($1,$2,$3,$4,$5,$6,$7)`;
+    // const value = [newFav.r_location_id,newFav.r_image,newFav.r_name,newFav.r_address,newFav.r_max_reservation,newFav.r_reservation_cost,newFav.r_reservation_count];
+
+    // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS EMAIL & LOCATION ID
+
+    // client.query(sql, value)
+    //     .then(data => {
+    //         res.send("Data added sucessfully");
+    //     })
+    //     .catch(error=>{
+    //         errorHandler(error,req,res)
+    //     })
+}
 
 function getReviewsByIdHandler(req, res) {
     const location_id = req.query.location_id;
@@ -219,9 +234,12 @@ async function HomeHandler(req, res){
 }
 
 function addSubmitHandler(req,res){
-    const sql=`SELECT * FROM restaurant_reservatin INNER JOIN restaurant_details`
+    // const sql=`SELECT * FROM restaurant_reservatin INNER JOIN restaurant_details`
 }
 
+function bookingListHandler(req,res){
+    // const sql = `SELECT * FROM restaurant_reservation WHERE location_id=location_id`
+}
 
 function AmmanRestaurant(location_id,name, photo, rating, distance, description, web_url, phone, website, address, cuisine, hours) {
     this.location_id = location_id;
