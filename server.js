@@ -229,55 +229,9 @@ function AmmanRestaurant(location_id,name, photo, rating, distance, description,
     this.hours = hours;
 }
 
-function addReviewHandler(req, res) {
-    const review = req.body;
-    console.log(review);
-
-    const sql = `INSERT INTO user_comments (email, location_id, comments, rating)
-    VALUES ($1, $2, $3, $4)`;
-    const values = [review.email, review.location_id, review.comments, review.rating];
-    client.query(sql, values)
-
-        .then(data => {
-            const sql = `SELECT * FROM user_comments WHERE location_id='${review.location_id}'`;
-            client.query(sql)
-                .then(allData => {
-                    res.send(allData.rows)
-                })
-
-                .catch(error => {
-                    errorHandler(error, req, res)
-                })
-        })
-
-        .catch((error) => {
-            errorHandler(error, req, res)
-        })
-} 
-
-
-
-function getReviewsByIdHandler(req, res) {
-    const location_id = req.query.location_id;
-    console.log(req.query.location_id);
-    const sql = `SELECT * FROM user_comments WHERE location_id='${location_id}';`;
-    client.query(sql)
-        .then(data => {
-            res.send(data.rows)
-        })
-        .catch(error => {
-            errorHandler(error, req, res);
-        })
-}
-
-function errorHandler(error, req, res) {
-    const err = {
-        status: 500,
-        responseText: "Sorry, something went wrong"
-    }
+function errorHandler  (err,req,res){
     res.status(500).send(err);
 }
-
 
 
 server.listen(PORT, () => {
