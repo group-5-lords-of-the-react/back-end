@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS user_comments;
 CREATE TABLE user_comments (
   serial_identifier SERIAL PRIMARY KEY,
   email VARCHAR(255),
-  location_id INTEGER REFERENCES restaurant_details(r_location_id),
+  location_id INTEGER,
   comments VARCHAR(255),
   rating FLOAT
 );

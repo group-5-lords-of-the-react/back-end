@@ -7,7 +7,7 @@ const pg = require('pg');
 require('dotenv').config();
 const axios = require('axios');
 server.use(express.json())
-let PORT = 3000;
+let PORT = 3003;
 const client = new pg.Client(process.env.DATABASE_URL);
 server.get('/', HomeHandler);
 server.get('/getReviewsById', getReviewsByIdHandler);
@@ -34,7 +34,7 @@ async function getResturauntByIdHandler(req, res) {
             lang: 'en_US'
         },
         headers: {
-            'X-RapidAPI-Key': '2016013408mshd25bf592d88a48ep1ce175jsn692c6bf79686',
+            'X-RapidAPI-Key': '23435c8dbdmsh68021dba889ef82p1313e0jsn4606a0431626',
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
         }
     };
@@ -142,26 +142,32 @@ async function getResturaunts(req, res) {
     }
 }
 
-function addFavouriteHandler(req, res) {
-    const { restaurantData } = req.body;
-    const sql = `INSERT INTO restaurant_details (r_location_id, r_image, r_name, r_address, r_max_reservation, r_reservation_cost, r_reservation_count) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (r_location_id) DO NOTHING;`
-    const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
 
+function addFavouriteHandler(req, res) {
+    const restaurantData = req.body;
+    const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count)
+     VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING;`;
+    const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
+    // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS LOCATION ID
+    const sql2 =`INSERT INTO favourite_list (location_id) VALUES ($1);`
+    const value2 = [restaurantData.location_id];
     client.query(sql, value)
         .then(data => {
-            const sql2 = `INSERT INTO favourite_list (location_id) VALUES ($1);`
-            const value2 = [restaurantData.r_location_id]; 
-
-            return client.query(sql2, value2);
-        })
-        .then(data => {
-            res.send("Data added successfully");
+            console.log(data);
         })
         .catch(error => {
-            errorHandler(error, req, res);
-        });
+            errorHandler(error, req, res)
+        })
+        
+    client.query(sql2, value2)
+        .then(data => {
+            res.send(data)
+        })
+        .catch(error => {
+            errorHandler(error, req, res)
+        })
+    
 }
-
 function getFavouriteHandler(req, res) {
     const sql = `SELECT fl.location_id, rd.r_image, rd.r_name, rd.r_address
                  FROM favourite_list AS fl
@@ -200,7 +206,7 @@ function addReviewHandler(req, res) {
     client.query(sql, values)
 
         .then(data => {
-            const sql = `SELECT * FROM user_comments WHERE location_id='${review.location_id}';`
+            const sql = `SELECT * FROM user_comments WHERE location_id=${review.location_id};`
             client.query(sql)
                 .then(allData => {
                     res.send(allData.rows)
