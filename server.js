@@ -8,12 +8,12 @@ const pg = require('pg');
 require('dotenv').config();
 const axios = require('axios');
 server.use(express.json())
-let PORT = 3008;
+let PORT = 3011;
 // const apiKey = process.env.APIkey;
- const client = new pg.Client(process.env.DATABASE_URL)
+ const client = new pg.Client("postgresql://localhost:5432/restaurant_backend")
  client.connect()
 
-//server.get('/', HomeHandler);
+
 // server.get('*', DefaultHandler);
 
 server.get('/', HomeHandler);
@@ -39,6 +39,7 @@ server.get('/Listrestaurants', async function Listrestaurants(req, res) {
             'X-RapidAPI-Key': process.env.APIKEY,
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
           }
+          
     }
 
     try {
