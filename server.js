@@ -9,48 +9,25 @@ require('dotenv').config();
 const axios = require('axios');
 server.use(express.json())
 let PORT = 3002;
- const client = new pg.Client(process.env.DATABASE_URL)
- client.connect()
+const client = new pg.Client(process.env.DATABASE_URL)
+client.connect()
 
 server.get('/', HomeHandler);
 server.get('/getReviewsById', getReviewsByIdHandler);
-server.post('/addReview',addReviewHandler);
-server.post('/addSubmit',addSubmitHandler);
+server.post('/addReview', addReviewHandler);
+server.post('/addBooking', addBookingHandler);
+server.get('/bookingList', bookingListHandler);
+server.put('/updateBooking/:id',updateBookingHandler);
+server.post('/addFavourite', addFavouriteHandler);
+server.get('/getFavourite',getFavouriteHandler)
+server.get('getImageId', getImageIdHandler);
+server.post('/restaurants', getResturaunts);
+server.delete('/deleteFavourite/:id', deleteFavouriteHandler);
+server.get('/getResturauntById', getResturauntByIdHandler);
 
-server.get('/Listrestaurants', async function Listrestaurants(req, res) {
 
-
-
-    const options = {
-        method: 'GET',
-        url: 'https://travel-advisor.p.rapidapi.com/restaurants/list-by-latlng',
-        params: {
-            latitude: '29.52667',
-            longitude: '35.00778',
-            limit: '30',
-            currency: 'USD',
-            distance: '6',
-            open_now: 'false',
-            lunit: 'km',
-            lang: 'en_US'
-        },
-        headers: {
-            'X-RapidAPI-Key': process.env.APIKEY,
-            'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-          }
-    }
-
-    try {
-        const response = await axios.request(options);
-        console.log(response.data);
-        res.send(response.data)
-    } catch (error) {
-        console.error(error);
-    }
-});
-
-async function getResturauntById (req, res) {
-    const {location} = req.query;
+async function getResturauntByIdHandler(req, res) {
+    const { location } = req.query;
     const options = {
         method: 'GET',
         url: 'https://travel-advisor.p.rapidapi.com/restaurants/get-details',
@@ -62,27 +39,27 @@ async function getResturauntById (req, res) {
         headers: {
             'X-RapidAPI-Key': process.env.APIKEY,
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-          }
+        }
     };
 
     try {
         const response = await axios.request(options);
 
-                let singleresult = new AmmanRestaurant(
-                    response.data.location_id,
-                    response.data.name,
-                    response.data.photo.images.original.url,
-                    response.data.rating,
-                    response.data.distance,
-                    response.data.description,
-                    response.data.web_url,
-                    response.data.phone,
-                    response.data.website,
-                    response.data.address,
-                    response.data.cuisine,
-                    response.data.hours
-                );
-            
+        let singleresult = new AmmanRestaurant(
+            response.data.location_id,
+            response.data.name,
+            response.data.photo.images.original.url,
+            response.data.rating,
+            response.data.distance,
+            response.data.description,
+            response.data.web_url,
+            response.data.phone,
+            response.data.website,
+            response.data.address,
+            response.data.cuisine,
+            response.data.hours
+        );
+
         res.send(singleresult);
     } catch (error) {
         console.error(error);
@@ -90,8 +67,54 @@ async function getResturauntById (req, res) {
     }
 }
 
-server.post('/restaurants', async function (req, res) {
-    const { city} = req.body;
+async function getImageIdHandler(req, res) {
+    const { location } = req.query;
+    const options = {
+        method: 'GET',
+        url: 'https://travel-advisor.p.rapidapi.com/photos/list',
+        params: {
+            location_id: location,
+            currency: 'USD',
+            limit: '3',
+            lang: 'en_US'
+        },
+        headers: {
+            'X-RapidAPI-Key': process.env.APIKEY,
+            'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
+        }
+    };
+
+    try {
+        const response = await axios.request(options);
+        const datax = response.data;
+        const dataxy = datax.data;
+
+
+
+        let mapResult = dataxy.map(item => {
+            if (item.images && item.images.original) {
+                let singleresult = new AmmanRestaurant2(
+                    item.images.original.url,
+                );
+                return singleresult;
+
+
+            }
+        });
+        res.send(mapResult);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error);
+    }
+}
+
+function AmmanRestaurant2(photo) {
+    this.photo = photo;
+}
+
+async function getResturaunts(req, res) {
+    const { city } = req.body;
 
     try {
         const options = {
@@ -110,7 +133,7 @@ server.post('/restaurants', async function (req, res) {
             headers: {
                 'X-RapidAPI-Key': process.env.APIKEY,
                 'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-              }
+            }
         };
 
         const response = await axios.request(options);
@@ -120,24 +143,46 @@ server.post('/restaurants', async function (req, res) {
         console.error(error);
         res.sendStatus(500);
     }
-});
+}
 
-function addFavouriteHandler (req,res){
-    //recieve location_id
-    //request to get details based on location_id (call getResturauntById ??)
-    // const newFav = req.body;
-    // const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count) VALUES ($1,$2,$3,$4,$5,$6,$7)`;
-    // const value = [newFav.r_location_id,newFav.r_image,newFav.r_name,newFav.r_address,newFav.r_max_reservation,newFav.r_reservation_cost,newFav.r_reservation_count];
+function addFavouriteHandler(req, res) {
+    const { restaurantData } = req.body;
+    const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING`;
+    const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
+    // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS LOCATION ID
+    const sql2 = `INSERT INTO favourite_list (location_id VALUES ($1))`
+    const value2 = [restaurantData.location_id];
+    client.query(sql, value)
+        .then(data => {
+            res.send("Data added sucessfully");
+        })
+        .catch(error => {
+            errorHandler(error, req, res)
+        })
+    client.query(sql2, value2)
+        .then(data => {
+            res.send("Data added sucessfully");
+        })
+        .catch(error => {
+            errorHandler(error, req, res)
+        })
+}
 
-    // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS EMAIL & LOCATION ID
-
-    // client.query(sql, value)
-    //     .then(data => {
-    //         res.send("Data added sucessfully");
-    //     })
-    //     .catch(error=>{
-    //         errorHandler(error,req,res)
-    //     })
+function getFavouriteHandler (req, res){
+    const sql = `SELECT restaurant_details.r_image,restaurant_details.r_name,restaurant_details.r_address 
+    FROM restaurant_details
+    INNER JOIN favourite_list
+    ON restaurant_details.r_location_id = favourite_list.location_id
+    ;`;
+  client.query(sql)
+    .then(data => {
+      res.send(data.rows);
+      console.log('data from DB', data.rows)
+    })
+    .catch((error) => {
+      console.log('sorry you have something error', error)
+      res.status(500).send(error);
+    })
 }
 
 function getReviewsByIdHandler(req, res) {
@@ -152,10 +197,9 @@ function getReviewsByIdHandler(req, res) {
             errorHandler(error, req, res);
         })
 }
- 
+
 function addReviewHandler(req, res) {
     const review = req.body;
-    console.log(review);
 
     const sql = `INSERT INTO user_comments (email, location_id, comments, rating)
     VALUES ($1, $2, $3, $4);`
@@ -179,15 +223,15 @@ function addReviewHandler(req, res) {
         })
 }
 
-async function HomeHandler(req, res){
+async function HomeHandler(req, res) {
 
-    const {lat,long} = req.query;
+    const { lat, long } = req.query;
     const options = {
         method: 'GET',
         url: 'https://travel-advisor.p.rapidapi.com/restaurants/list-by-latlng',
         params: {
-            latitude:lat,
-            longitude:long,
+            latitude: lat,
+            longitude: long,
             limit: '30',
             distance: '12',
             lunit: 'km',
@@ -195,7 +239,7 @@ async function HomeHandler(req, res){
         headers: {
             'X-RapidAPI-Key': process.env.APIKEY,
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-          }
+        }
     };
 
     try {
@@ -233,15 +277,65 @@ async function HomeHandler(req, res){
     }
 }
 
-function addSubmitHandler(req,res){
-    // const sql=`SELECT * FROM restaurant_reservatin INNER JOIN restaurant_details`
+function addBookingHandler(req, res) {
+    const { restaurantData } = req.body;
+    const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING`;
+    const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
+    // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS LOCATION ID
+    const sql2 = `INSERT INTO restaurant_reservation (location_id,r_reservation_date,r_reservation_time,r_actual_cost,no_people_reservation VALUES ($1,$2,$3,$4,$5))`
+    const value2 = [restaurantData.location_id,restaurantData.r_reservation_date,restaurantData.r_reservation_time,restaurantData.r_actual_cost,restaurantData.no_people_reservation];
+    client.query(sql, value)
+        .then(data => {
+            res.send("Data added sucessfully");
+        })
+        .catch(error => {
+            errorHandler(error, req, res)
+        })
+    client.query(sql2, value2)
+        .then(data => {
+            res.send("Data added sucessfully");
+        })
+        .catch(error => {
+            errorHandler(error, req, res)
+        })
 }
 
-function bookingListHandler(req,res){
-    // const sql = `SELECT * FROM restaurant_reservation WHERE location_id=location_id`
+function bookingListHandler(req, res) {
+
+    const sql = `SELECT restaurant_details.r_name,restaurant_details.r_address,restaurant_reservation.r_reservation_date,restaurant_reservation.r_reservation_time,restaurant_reservation.r_actual_cost
+    FROM restaurant_details
+    INNER JOIN restaurant_reservation
+    ON restaurant_details.r_location_id = restaurant_reservation.location_id
+    WHERE restaurant_details.r_reservation_count<restaurant_details.r_max_reservation;`;
+  client.query(sql)
+    .then(data => {
+      res.send(data.rows);
+      console.log('data from DB', data.rows)
+    })
+    .catch((error) => {
+      console.log('sorry you have something error', error)
+      res.status(500).send(error);
+    })
 }
 
-function AmmanRestaurant(location_id,name, photo, rating, distance, description, web_url, phone, website, address, cuisine, hours) {
+function updateBookingHandler(req, res){
+    const {location_id} = req.params;
+    const { restaurantData } = req.body;
+    const sql = `UPDATE restaurant_reservation SET (r_reservation_date,r_reservation_time,no_people_reservation)
+     VALUES ($1,$2,$3)
+     WHERE location_id = ${location_id};`;
+    const value = [restaurantData.r_reservation_date, restaurantData.r_reservation_time, restaurantData.no_people_reservation];
+    client.query(sql, value)
+    .then(data => {
+        res.send("Data updated sucessfully");
+        })
+        .catch((error) => {
+            console.log('sorry you have something error', error)
+            res.status(500).send(error);
+            })
+}
+
+function AmmanRestaurant(location_id, name, photo, rating, distance, description, web_url, phone, website, address, cuisine, hours) {
     this.location_id = location_id;
     this.name = name;
     this.photo = photo;
@@ -280,9 +374,7 @@ function addReviewHandler(req, res) {
         .catch((error) => {
             errorHandler(error, req, res)
         })
-} 
-
-
+}
 
 function getReviewsByIdHandler(req, res) {
     const location_id = req.query.location_id;
@@ -297,6 +389,27 @@ function getReviewsByIdHandler(req, res) {
         })
 }
 
+function deleteFavouriteHandler(req, res) {
+    const location_id = req.params.location_id;
+    console.log(req.params);
+    const sql = `DELETE FROM favourite_list WHERE location_id=${location_id};`
+    client.query(sql)
+        .then(data => {
+            const sql = `SELECT * FROM favourite_list;`
+            client.query(sql)
+                .then(allData => {
+                    res.send(allData.rows)
+                })
+
+                .catch(error => {
+                    errorHandler(error, req, res)
+                })
+        })
+        .catch(error => {
+            errorHandler(error, req, res)
+        })
+}
+
 function errorHandler(error, req, res) {
     const err = {
         status: 500,
@@ -305,11 +418,43 @@ function errorHandler(error, req, res) {
     res.status(500).send(err);
 }
 
-
-
 server.listen(PORT, () => {
 
     console.log(`Listening on ${PORT}: I'm ready`);
 
 
 })
+
+
+
+// server.get('/Listrestaurants', async function Listrestaurants(req, res) {
+
+
+
+//     const options = {
+//         method: 'GET',
+//         url: 'https://travel-advisor.p.rapidapi.com/restaurants/list-by-latlng',
+//         params: {
+//             latitude: '29.52667',
+//             longitude: '35.00778',
+//             limit: '30',
+//             currency: 'USD',
+//             distance: '6',
+//             open_now: 'false',
+//             lunit: 'km',
+//             lang: 'en_US'
+//         },
+//         headers: {
+//             'X-RapidAPI-Key': process.env.APIKEY,
+//             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
+//           }
+//     }
+
+//     try {
+//         const response = await axios.request(options);
+//         console.log(response.data);
+//         res.send(response.data)
+//     } catch (error) {
+//         console.error(error);
+//     }
+// });
