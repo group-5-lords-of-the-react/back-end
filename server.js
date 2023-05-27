@@ -1,5 +1,4 @@
 'use strict'
-
 const express = require('express');
 const server = express();
 const cors = require('cors');
@@ -8,25 +7,21 @@ const pg = require('pg');
 require('dotenv').config();
 const axios = require('axios');
 server.use(express.json())
-let PORT = 3002;
-const client = new pg.Client(process.env.DATABASE_URL)
-client.connect()
-
+let PORT = 3000;
+const client = new pg.Client(process.env.DATABASE_URL);
 server.get('/', HomeHandler);
-
 server.get('/getReviewsById', getReviewsByIdHandler);
 server.post('/addReview', addReviewHandler);
 server.post('/addBooking', addBookingHandler);
 server.get('/bookingList', bookingListHandler);
-server.put('/updateBooking/:id',updateBookingHandler);
+server.put('/updateBooking/:id', updateBookingHandler);
 server.post('/addFavourite', addFavouriteHandler);
-server.get('/getFavourite',getFavouriteHandler)
+server.get('/getFavourite', getFavouriteHandler)
 server.get('getImageId', getImageIdHandler);
 server.post('/restaurants', getResturaunts);
-server.delete('/deleteFavourite/:id', deleteFavouriteHandler);
+server.delete('/deleteFavourite', deleteFavouriteHandler);
 server.get('/getResturauntById', getResturauntByIdHandler);
-
-
+server.delete('/deleteBooking/:id', deleteBookingHandler);
 
 async function getResturauntByIdHandler(req, res) {
     const { location } = req.query;
@@ -39,7 +34,7 @@ async function getResturauntByIdHandler(req, res) {
             lang: 'en_US'
         },
         headers: {
-            'X-RapidAPI-Key': process.env.APIKEY,
+            'X-RapidAPI-Key': '2016013408mshd25bf592d88a48ep1ce175jsn692c6bf79686',
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
         }
     };
@@ -149,42 +144,38 @@ async function getResturaunts(req, res) {
 
 function addFavouriteHandler(req, res) {
     const { restaurantData } = req.body;
-    const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING`;
+    const sql = `INSERT INTO restaurant_details (r_location_id, r_image, r_name, r_address, r_max_reservation, r_reservation_cost, r_reservation_count) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (r_location_id) DO NOTHING;`
     const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
-    // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS LOCATION ID
-    const sql2 = `INSERT INTO favourite_list (location_id VALUES ($1))`
-    const value2 = [restaurantData.location_id];
+
     client.query(sql, value)
         .then(data => {
-            res.send("Data added sucessfully");
+            const sql2 = `INSERT INTO favourite_list (location_id) VALUES ($1);`
+            const value2 = [restaurantData.r_location_id]; 
+
+            return client.query(sql2, value2);
         })
-        .catch(error => {
-            errorHandler(error, req, res)
-        })
-    client.query(sql2, value2)
         .then(data => {
-            res.send("Data added sucessfully");
+            res.send("Data added successfully");
         })
         .catch(error => {
-            errorHandler(error, req, res)
-        })
+            errorHandler(error, req, res);
+        });
 }
 
-function getFavouriteHandler (req, res){
-    const sql = `SELECT restaurant_details.r_image,restaurant_details.r_name,restaurant_details.r_address 
-    FROM restaurant_details
-    INNER JOIN favourite_list
-    ON restaurant_details.r_location_id = favourite_list.location_id
-    ;`;
-  client.query(sql)
-    .then(data => {
-      res.send(data.rows);
-      console.log('data from DB', data.rows)
-    })
-    .catch((error) => {
-      console.log('sorry you have something error', error)
-      res.status(500).send(error);
-    })
+function getFavouriteHandler(req, res) {
+    const sql = `SELECT fl.location_id, rd.r_image, rd.r_name, rd.r_address
+                 FROM favourite_list AS fl
+                 INNER JOIN restaurant_details AS rd ON fl.location_id = rd.r_location_id;`
+
+    client.query(sql)
+        .then(data => {
+            res.send(data.rows);
+            console.log('Data from DB:', data.rows);
+        })
+        .catch(error => {
+            console.log('Sorry, there was an error:', error);
+            res.status(500).send(error);
+        });
 }
 
 function getReviewsByIdHandler(req, res) {
@@ -280,22 +271,24 @@ async function HomeHandler(req, res) {
 }
 
 function addBookingHandler(req, res) {
-    const { restaurantData } = req.body;
-    const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING`;
+    const restaurantData = req.body;
+    const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count)
+     VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING;`;
     const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
     // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS LOCATION ID
-    const sql2 = `INSERT INTO restaurant_reservation (location_id,r_reservation_date,r_reservation_time,r_actual_cost,no_people_reservation VALUES ($1,$2,$3,$4,$5))`
-    const value2 = [restaurantData.location_id,restaurantData.r_reservation_date,restaurantData.r_reservation_time,restaurantData.r_actual_cost,restaurantData.no_people_reservation];
+    const sql2 = `INSERT INTO restaurant_reservation (location_id,r_reservation_date,r_reservation_time,no_people_reservation)
+     VALUES ($1,$2,$3,$4);`
+    const value2 = [restaurantData.location_id, restaurantData.r_reservation_date, restaurantData.r_reservation_time, restaurantData.no_people_reservation];
     client.query(sql, value)
         .then(data => {
-            res.send("Data added sucessfully");
+            console.log(data);
         })
         .catch(error => {
             errorHandler(error, req, res)
         })
     client.query(sql2, value2)
         .then(data => {
-            res.send("Data added sucessfully");
+            res.send(data)
         })
         .catch(error => {
             errorHandler(error, req, res)
@@ -304,37 +297,62 @@ function addBookingHandler(req, res) {
 
 function bookingListHandler(req, res) {
 
-    const sql = `SELECT restaurant_details.r_name,restaurant_details.r_address,restaurant_reservation.r_reservation_date,restaurant_reservation.r_reservation_time,restaurant_reservation.r_actual_cost
-    FROM restaurant_details
-    INNER JOIN restaurant_reservation
-    ON restaurant_details.r_location_id = restaurant_reservation.location_id
-    WHERE restaurant_details.r_reservation_count<restaurant_details.r_max_reservation;`;
-  client.query(sql)
-    .then(data => {
-      res.send(data.rows);
-      console.log('data from DB', data.rows)
-    })
-    .catch((error) => {
-      console.log('sorry you have something error', error)
-      res.status(500).send(error);
-    })
-}
+    const sql = `SELECT restaurant_details.r_location_id,
+    restaurant_details.r_name,
+    restaurant_details.r_address,
+    restaurant_reservation.r_reservation_date,
+    restaurant_reservation.r_reservation_time,
+    restaurant_reservation.no_people_reservation
+FROM restaurant_details
+INNER JOIN restaurant_reservation
+ON restaurant_details.r_location_id = restaurant_reservation.location_id;`
 
-function updateBookingHandler(req, res){
-    const {location_id} = req.params;
-    const { restaurantData } = req.body;
-    const sql = `UPDATE restaurant_reservation SET (r_reservation_date,r_reservation_time,no_people_reservation)
-     VALUES ($1,$2,$3)
-     WHERE location_id = ${location_id};`;
-    const value = [restaurantData.r_reservation_date, restaurantData.r_reservation_time, restaurantData.no_people_reservation];
-    client.query(sql, value)
-    .then(data => {
-        res.send("Data updated sucessfully");
+    client.query(sql)
+        .then(data => {
+            res.send(data.rows);
+            console.log('data from DB', data.rows)
         })
         .catch((error) => {
             console.log('sorry you have something error', error)
             res.status(500).send(error);
-            })
+        })
+}
+
+function updateBookingHandler(req, res) {
+    const location_id = req.params.id;
+    const restaurantData = req.body;
+    const sql = `UPDATE restaurant_reservation 
+    SET r_reservation_date = $1,
+    r_reservation_time =$2,
+    no_people_reservation = $3
+     WHERE location_id = ${location_id}
+     RETURNING * ;`
+    const value = [restaurantData.r_reservation_date, restaurantData.r_reservation_time, restaurantData.no_people_reservation];
+    client.query(sql, value)
+        .then(data => {
+            const sql2 = `SELECT restaurant_details.r_location_id,
+        restaurant_details.r_name,
+        restaurant_details.r_address,
+        restaurant_reservation.r_reservation_date,
+        restaurant_reservation.r_reservation_time,
+        restaurant_reservation.no_people_reservation
+    FROM restaurant_details
+    INNER JOIN restaurant_reservation
+    ON restaurant_details.r_location_id = restaurant_reservation.location_id;`
+            client.query(sql2)
+                .then(alldata => {
+                    res.send(alldata.rows)
+
+                })
+                .catch((error) => {
+                    console.log('sorry you have something error', error)
+                    res.status(500).send(error);
+                })
+        })
+        .catch((error) => {
+            console.log('sorry you have something error', error)
+            res.status(500).send(error);
+        })
 }
 
 function AmmanRestaurant(location_id, name, photo, rating, distance, description, web_url, phone, website, address, cuisine, hours) {
@@ -376,9 +394,7 @@ function addReviewHandler(req, res) {
         .catch((error) => {
             errorHandler(error, req, res)
         })
-} 
-
-
+}
 
 function getReviewsByIdHandler(req, res) {
     const location_id = req.query.location_id;
@@ -414,13 +430,34 @@ function getReviewsByIdHandler(req, res) {
         })
 }
 
-function deleteFavouriteHandler(req, res) {
-    const location_id = req.params.location_id;
-    console.log(req.params);
-    const sql = `DELETE FROM favourite_list WHERE location_id=${location_id};`
+    function deleteFavouriteHandler(req, res) {
+        const location_id = req.query.location_id; 
+        console.log(req.query);
+        const sql = `DELETE FROM favourite_list WHERE location_id = $1;`
+        const values = [location_id];
+    
+        client.query(sql, values)
+            .then(data => {
+                const sql = `SELECT * FROM favourite_list;`;
+                client.query(sql)
+                    .then(allData => {
+                        res.send(allData.rows);
+                    })
+                    .catch(error => {
+                        errorHandler(error, req, res);
+                    });
+            })
+            .catch(error => {
+                errorHandler(error, req, res);
+            });
+}
+
+function deleteBookingHandler(req, res) {
+    const location_id = req.params.id;
+    const sql = `DELETE FROM restaurant_reservation WHERE location_id=${location_id};`
     client.query(sql)
         .then(data => {
-            const sql = `SELECT * FROM favourite_list;`
+            const sql = `SELECT * FROM restaurant_reservation;`
             client.query(sql)
                 .then(allData => {
                     res.send(allData.rows)
@@ -443,12 +480,15 @@ function errorHandler(error, req, res) {
     res.status(500).send(err);
 }
 
-server.listen(PORT, () => {
+client.connect()
+    .then(() => {
 
-    console.log(`Listening on ${PORT}: I'm ready`);
 
+        server.listen(PORT, () => {
+            console.log(`Listening on ${PORT}: I'm ready`);
+        })
 
-})
+    })
 
 
 
