@@ -13,8 +13,7 @@ CREATE TABLE restaurant_details (
 DROP TABLE IF EXISTS restaurant_reservation;
 
 CREATE TABLE restaurant_reservation (
-  serial_identifier SERIAL PRIMARY KEY,
-  location_id INTEGER REFERENCES restaurant_details(r_location_id),
+  location_id INTEGER PRIMARY KEY,
   r_reservation_date DATE,
   r_reservation_time TIME,
   no_people_reservation INTEGER
@@ -25,7 +24,7 @@ DROP TABLE IF EXISTS user_comments;
 CREATE TABLE user_comments (
   serial_identifier SERIAL PRIMARY KEY,
   email VARCHAR(255),
-  location_id INTEGER REFERENCES restaurant_details(r_location_id),
+  location_id INTEGER,
   comments VARCHAR(255),
   rating FLOAT
 );
@@ -33,6 +32,5 @@ CREATE TABLE user_comments (
 DROP TABLE IF EXISTS favourite_list;
 
 CREATE TABLE favourite_list (
-serial_identifier SERIAL PRIMARY KEY,
-location_id INTEGER REFERENCES restaurant_details(r_location_id)
+location_id INTEGER PRIMARY KEY
 );
