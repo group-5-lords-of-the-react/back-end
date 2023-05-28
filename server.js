@@ -7,7 +7,7 @@ const pg = require('pg');
 require('dotenv').config();
 const axios = require('axios');
 server.use(express.json())
-let PORT = 3000;
+let PORT = 3001;
 const client = new pg.Client(process.env.DATABASE_URL);
 server.get('/', HomeHandler);
 server.get('/getReviewsById', getReviewsByIdHandler);
@@ -22,6 +22,10 @@ server.post('/restaurants', getResturaunts);
 server.delete('/deleteFavourite', deleteFavouriteHandler);
 server.get('/getResturauntById', getResturauntByIdHandler);
 server.delete('/deleteBooking/:id', deleteBookingHandler);
+
+
+
+
 
 async function getResturauntByIdHandler(req, res) {
     const { location } = req.query;
@@ -143,23 +147,45 @@ async function getResturaunts(req, res) {
 }
 
 function addFavouriteHandler(req, res) {
-    const { restaurantData } = req.body;
-    const sql = `INSERT INTO restaurant_details (r_location_id, r_image, r_name, r_address, r_max_reservation, r_reservation_cost, r_reservation_count) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (r_location_id) DO NOTHING;`
+    const restaurantData = req.body;
+    const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count)
+     VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING;`;
     const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
-
+    // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS LOCATION ID
+    const sql2 = `INSERT INTO restaurant_reservation (location_id,r_reservation_date,r_reservation_time,no_people_reservation)
+     VALUES ($1,$2,$3,$4);`
+    const value2 = [restaurantData.location_id, restaurantData.r_reservation_date, restaurantData.r_reservation_time, restaurantData.no_people_reservation];
     client.query(sql, value)
         .then(data => {
-            const sql2 = `INSERT INTO favourite_list (location_id) VALUES ($1);`
-            const value2 = [restaurantData.r_location_id]; 
-
-            return client.query(sql2, value2);
-        })
-        .then(data => {
-            res.send("Data added successfully");
+            console.log(data);
         })
         .catch(error => {
-            errorHandler(error, req, res);
-        });
+            errorHandler(error, req, res)
+        })
+    client.query(sql2, value2)
+        .then(data => {
+            res.send(data)
+        })
+        .catch(error => {
+            errorHandler(error, req, res)
+        })
+    // const { restaurantData } = req.body;
+    // const sql = `INSERT INTO restaurant_details (r_location_id, r_image, r_name, r_address, r_max_reservation, r_reservation_cost, r_reservation_count) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (r_location_id) DO NOTHING;`
+    // const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
+
+    // client.query(sql, value)
+    //     .then(data => {
+    //         const sql2 = `INSERT INTO favourite_list (location_id) VALUES ($1);`
+    //         const value2 = [restaurantData.r_location_id]; 
+
+    //         return client.query(sql2, value2);
+    //     })
+    //     .then(data => {
+    //         res.send("Data added successfully");
+    //     })
+    //     .catch(error => {
+    //         errorHandler(error, req, res);
+    //     });
 }
 
 function getFavouriteHandler(req, res) {

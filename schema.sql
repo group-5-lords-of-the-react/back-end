@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS user_comments;
 CREATE TABLE user_comments (
   serial_identifier SERIAL PRIMARY KEY,
   email VARCHAR(255),
-  location_id INTEGER REFERENCES restaurant_details(r_location_id),
+  location_id INTEGER ,
   comments VARCHAR(255),
   rating FLOAT
 );
@@ -36,3 +36,15 @@ CREATE TABLE favourite_list (
 serial_identifier SERIAL PRIMARY KEY,
 location_id INTEGER REFERENCES restaurant_details(r_location_id)
 );
+
+
+
+DROP TABLE IF EXISTS favMovies;
+
+CREATE TABLE IF NOT EXISTS favMovies (
+   id SERIAL PRIMARY KEY,
+   title VARCHAR(300),
+   overview  VARCHAR(700),
+   poster_path  VARCHAR(700),
+   note  VARCHAR(700)
+); 
