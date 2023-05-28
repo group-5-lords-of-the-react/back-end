@@ -7,7 +7,7 @@ const pg = require('pg');
 require('dotenv').config();
 const axios = require('axios');
 server.use(express.json())
-let PORT = 3003;
+let PORT = process.env.PORT;
 const client = new pg.Client(process.env.DATABASE_URL);
 server.get('/', HomeHandler);
 server.get('/getReviewsById', getReviewsByIdHandler);
@@ -19,9 +19,13 @@ server.post('/addFavourite', addFavouriteHandler);
 server.get('/getFavourite', getFavouriteHandler)
 server.get('getImageId', getImageIdHandler);
 server.post('/restaurants', getResturaunts);
-server.delete('/deleteFavourite', deleteFavouriteHandler);
+server.delete('/deleteFavourite/:id', deleteFavouriteHandler);
 server.get('/getResturauntById', getResturauntByIdHandler);
 server.delete('/deleteBooking/:id', deleteBookingHandler);
+////
+server.get('/checkFavExist/:id', checkFavExistHandler)
+server.get('/checkBookExist/:id', checkBookExistHandler)
+
 
 async function getResturauntByIdHandler(req, res) {
     const { location } = req.query;
@@ -34,10 +38,12 @@ async function getResturauntByIdHandler(req, res) {
             lang: 'en_US'
         },
         headers: {
-            'X-RapidAPI-Key': '23435c8dbdmsh68021dba889ef82p1313e0jsn4606a0431626',
+            'X-RapidAPI-Key': process.env.APIKEY,
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
         }
     };
+    // const sql=`SELECT * FROM restaurant_reservation WHERE location_id =${location};`
+    // const sql2=`SELECT * FROM favourite_list WHERE location_id =${location};`
 
     try {
         const response = await axios.request(options);
@@ -72,7 +78,7 @@ async function getImageIdHandler(req, res) {
         params: {
             location_id: location,
             currency: 'USD',
-            limit: '3',
+            limit: '2',
             lang: 'en_US'
         },
         headers: {
@@ -120,9 +126,9 @@ async function getResturaunts(req, res) {
             params: {
                 latitude: latitude,
                 longitude: longitude,
-                limit: '30',
+                limit: '2',
                 currency: 'USD',
-                distance: '6',
+                distance: '12',
                 open_now: 'false',
                 lunit: 'km',
                 lang: 'en_US'
@@ -149,7 +155,7 @@ function addFavouriteHandler(req, res) {
      VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING;`;
     const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
     // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS LOCATION ID
-    const sql2 =`INSERT INTO favourite_list (location_id) VALUES ($1);`
+    const sql2 = `INSERT INTO favourite_list (location_id) VALUES ($1);`
     const value2 = [restaurantData.location_id];
     client.query(sql, value)
         .then(data => {
@@ -158,7 +164,7 @@ function addFavouriteHandler(req, res) {
         .catch(error => {
             errorHandler(error, req, res)
         })
-        
+
     client.query(sql2, value2)
         .then(data => {
             res.send(data)
@@ -166,12 +172,12 @@ function addFavouriteHandler(req, res) {
         .catch(error => {
             errorHandler(error, req, res)
         })
-    
+
 }
 function getFavouriteHandler(req, res) {
-    const sql = `SELECT fl.location_id, rd.r_image, rd.r_name, rd.r_address
-                 FROM favourite_list AS fl
-                 INNER JOIN restaurant_details AS rd ON fl.location_id = rd.r_location_id;`
+    const sql = `SELECT favourite_list.location_id, restaurant_details.r_image, restaurant_details.r_name, restaurant_details.r_address
+    FROM favourite_list
+    INNER JOIN restaurant_details ON favourite_list.location_id = restaurant_details.r_location_id;`
 
     client.query(sql)
         .then(data => {
@@ -231,7 +237,7 @@ async function HomeHandler(req, res) {
         params: {
             latitude: lat,
             longitude: long,
-            limit: '30',
+            limit: '5',
             distance: '12',
             lunit: 'km',
         },
@@ -436,26 +442,24 @@ function getReviewsByIdHandler(req, res) {
         })
 }
 
-    function deleteFavouriteHandler(req, res) {
-        const location_id = req.query.location_id; 
-        console.log(req.query);
-        const sql = `DELETE FROM favourite_list WHERE location_id = $1;`
-        const values = [location_id];
-    
-        client.query(sql, values)
-            .then(data => {
-                const sql = `SELECT * FROM favourite_list;`;
-                client.query(sql)
-                    .then(allData => {
-                        res.send(allData.rows);
-                    })
-                    .catch(error => {
-                        errorHandler(error, req, res);
-                    });
-            })
-            .catch(error => {
-                errorHandler(error, req, res);
-            });
+function deleteFavouriteHandler(req, res) {
+    const location_id = req.params.id;
+    console.log(req.query);
+    const sql = `DELETE FROM favourite_list WHERE location_id=${location_id};`
+    client.query(sql)
+        .then(data => {
+            const sql = `SELECT * FROM favourite_list;`;
+            client.query(sql)
+                .then(allData => {
+                    res.send(allData.rows);
+                })
+                .catch(error => {
+                    errorHandler(error, req, res);
+                });
+        })
+        .catch(error => {
+            errorHandler(error, req, res);
+        });
 }
 
 function deleteBookingHandler(req, res) {
@@ -484,6 +488,41 @@ function errorHandler(error, req, res) {
         responseText: "Sorry, something went wrong"
     }
     res.status(500).send(err);
+}
+
+
+
+function checkFavExistHandler(req, res) {
+    const location_id = req.params.id;
+    const sql = `SELECT COUNT(*) FROM favourite_list WHERE location_id = ${location_id};`
+    client.query(sql)
+        .then(allData => {
+            if (allData.rows[0].count > 0)
+                res.send(true)
+            else
+                res.send(false)
+        })
+
+        .catch(error => {
+            errorHandler(error, req, res)
+        })
+
+}
+function checkBookExistHandler(req, res) {
+    const location_id = req.params.id;
+    const sql = `SELECT COUNT(*) FROM restaurant_reservation WHERE location_id = ${location_id};`
+    client.query(sql)
+        .then(allData => {
+            if (allData.rows[0].count > 0)
+                res.send(true)
+            else
+                res.send(false)
+        })
+
+        .catch(error => {
+            errorHandler(error, req, res)
+        })
+
 }
 
 client.connect()
