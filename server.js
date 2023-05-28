@@ -25,8 +25,6 @@ server.delete('/deleteBooking/:id', deleteBookingHandler);
 ////
 server.get('/checkFavExist/:id', checkFavExistHandler)
 server.get('/checkBookExist/:id', checkBookExistHandler)
-
-
 async function getResturauntByIdHandler(req, res) {
     const { location } = req.query;
     const options = {
@@ -163,10 +161,16 @@ function addFavouriteHandler(req, res) {
         })
         .catch(error => {
             errorHandler(error, req, res)
+            console.log(data);
         })
+        .catch(error => {
+            errorHandler(error, req, res)
+        })
+    client.query(sql2, value2)
 
     client.query(sql2, value2)
         .then(data => {
+            res.send(data)
             res.send(data)
         })
         .catch(error => {
