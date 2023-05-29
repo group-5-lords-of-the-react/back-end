@@ -490,8 +490,6 @@ function errorHandler(error, req, res) {
     res.status(500).send(err);
 }
 
-
-
 function checkFavExistHandler(req, res) {
     const location_id = req.params.id;
     const sql = `SELECT COUNT(*) FROM favourite_list WHERE location_id = ${location_id};`
@@ -534,10 +532,6 @@ client.connect()
         })
 
     })
-
-
-
-// server.get('/Listrestaurants', async function Listrestaurants(req, res) {
 
 
 
