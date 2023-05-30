@@ -24,6 +24,12 @@ server.get('/getResturauntById', getResturauntByIdHandler);
 server.delete('/deleteBooking/:id', deleteBookingHandler);
 server.get('/checkFavExist/:id', checkFavExistHandler)
 server.get('/checkBookExist/:id', checkBookExistHandler)
+
+
+
+
+
+
 async function getResturauntByIdHandler(req, res) {
     const { location } = req.query;
     const options = {
@@ -233,6 +239,8 @@ async function HomeHandler(req, res) {
         params: {
             latitude: lat,
             longitude: long,
+            limit: '2',
+            distance: '15',
             limit: '2',
             distance: '15',
             lunit: 'km',
