@@ -146,7 +146,6 @@ async function getResturaunts(req, res) {
     }
 }
 
-
 function addFavouriteHandler(req, res) {
     const restaurantData = req.body;
     const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count)
@@ -537,32 +536,3 @@ client.connect()
 
     })
 
-
-
-//     const options = {
-//         method: 'GET',
-//         url: 'https://travel-advisor.p.rapidapi.com/restaurants/list-by-latlng',
-//         params: {
-//             latitude: '29.52667',
-//             longitude: '35.00778',
-//             limit: '30',
-//             currency: 'USD',
-//             distance: '6',
-//             open_now: 'false',
-//             lunit: 'km',
-//             lang: 'en_US'
-//         },
-//         headers: {
-//             'X-RapidAPI-Key': process.env.APIKEY,
-//             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-//           }
-//     }
-
-//     try {
-//         const response = await axios.request(options);
-//         console.log(response.data);
-//         res.send(response.data)
-//     } catch (error) {
-//         console.error(error);
-//     }
-// });
