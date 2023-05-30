@@ -27,6 +27,10 @@ server.get('/checkFavExist/:id', checkFavExistHandler)
 server.get('/checkBookExist/:id', checkBookExistHandler)
 
 
+
+
+
+
 async function getResturauntByIdHandler(req, res) {
     const { location } = req.query;
     const options = {
@@ -237,8 +241,8 @@ async function HomeHandler(req, res) {
         params: {
             latitude: lat,
             longitude: long,
-            limit: '5',
-            distance: '12',
+            limit: '2',
+            distance: '15',
             lunit: 'km',
         },
         headers: {
@@ -568,3 +572,4 @@ client.connect()
 //         console.error(error);
 //     }
 // });
+
