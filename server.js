@@ -22,7 +22,6 @@ server.post('/restaurants', getResturaunts);
 server.delete('/deleteFavourite/:id', deleteFavouriteHandler);
 server.get('/getResturauntById', getResturauntByIdHandler);
 server.delete('/deleteBooking/:id', deleteBookingHandler);
-////
 server.get('/checkFavExist/:id', checkFavExistHandler)
 server.get('/checkBookExist/:id', checkBookExistHandler)
 
@@ -46,9 +45,6 @@ async function getResturauntByIdHandler(req, res) {
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
         }
     };
-    // const sql=`SELECT * FROM restaurant_reservation WHERE location_id =${location};`
-    // const sql2=`SELECT * FROM favourite_list WHERE location_id =${location};`
-
     try {
         const response = await axios.request(options);
 
@@ -91,7 +87,6 @@ async function getImageIdHandler(req, res) {
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
         }
     };
-
     try {
         const response = await axios.request(options);
         const datax = response.data;
@@ -152,14 +147,11 @@ async function getResturaunts(req, res) {
         res.sendStatus(500);
     }
 }
-
-
 function addFavouriteHandler(req, res) {
     const restaurantData = req.body;
     const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count)
      VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING;`;
     const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
-    // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS LOCATION ID
     const sql2 = `INSERT INTO favourite_list (location_id) VALUES ($1);`
     const value2 = [restaurantData.location_id];
     client.query(sql, value)
@@ -168,10 +160,16 @@ function addFavouriteHandler(req, res) {
         })
         .catch(error => {
             errorHandler(error, req, res)
+            console.log(data);
         })
+        .catch(error => {
+            errorHandler(error, req, res)
+        })
+    client.query(sql2, value2)
 
     client.query(sql2, value2)
         .then(data => {
+            res.send(data)
             res.send(data)
         })
         .catch(error => {
@@ -244,6 +242,8 @@ async function HomeHandler(req, res) {
             longitude: long,
             limit: '14',
             distance: '15',
+            limit: '2',
+            distance: '15',
             lunit: 'km',
         },
         headers: {
@@ -292,7 +292,6 @@ function addBookingHandler(req, res) {
     const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count)
      VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING;`;
     const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
-    // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS LOCATION ID
     const sql2 = `INSERT INTO restaurant_reservation (location_id,r_reservation_date,r_reservation_time,no_people_reservation)
      VALUES ($1,$2,$3,$4);`
     const value2 = [restaurantData.location_id, restaurantData.r_reservation_date, restaurantData.r_reservation_time, restaurantData.no_people_reservation];
@@ -495,8 +494,6 @@ function errorHandler(error, req, res) {
     res.status(500).send(err);
 }
 
-
-
 function checkFavExistHandler(req, res) {
     const location_id = req.params.id;
     const sql = `SELECT COUNT(*) FROM favourite_list WHERE location_id = ${location_id};`
@@ -539,38 +536,4 @@ client.connect()
         })
 
     })
-
-
-
-// server.get('/Listrestaurants', async function Listrestaurants(req, res) {
-
-
-
-//     const options = {
-//         method: 'GET',
-//         url: 'https://travel-advisor.p.rapidapi.com/restaurants/list-by-latlng',
-//         params: {
-//             latitude: '29.52667',
-//             longitude: '35.00778',
-//             limit: '30',
-//             currency: 'USD',
-//             distance: '6',
-//             open_now: 'false',
-//             lunit: 'km',
-//             lang: 'en_US'
-//         },
-//         headers: {
-//             'X-RapidAPI-Key': process.env.APIKEY,
-//             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-//           }
-//     }
-
-//     try {
-//         const response = await axios.request(options);
-//         console.log(response.data);
-//         res.send(response.data)
-//     } catch (error) {
-//         console.error(error);
-//     }
-// });
 
