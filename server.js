@@ -70,7 +70,8 @@ async function getResturauntByIdHandler(req, res) {
         res.send(singleresult);
     } catch (error) {
         console.error(error);
-        res.status(500).send(error);
+        
+         res.status(500).send(error);
     }
 }
 
@@ -241,7 +242,7 @@ async function HomeHandler(req, res) {
         params: {
             latitude: lat,
             longitude: long,
-            limit: '2',
+            limit: '14',
             distance: '15',
             lunit: 'km',
         },
