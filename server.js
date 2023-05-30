@@ -22,7 +22,6 @@ server.post('/restaurants', getResturaunts);
 server.delete('/deleteFavourite/:id', deleteFavouriteHandler);
 server.get('/getResturauntById', getResturauntByIdHandler);
 server.delete('/deleteBooking/:id', deleteBookingHandler);
-////
 server.get('/checkFavExist/:id', checkFavExistHandler)
 server.get('/checkBookExist/:id', checkBookExistHandler)
 async function getResturauntByIdHandler(req, res) {
@@ -40,9 +39,6 @@ async function getResturauntByIdHandler(req, res) {
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
         }
     };
-    // const sql=`SELECT * FROM restaurant_reservation WHERE location_id =${location};`
-    // const sql2=`SELECT * FROM favourite_list WHERE location_id =${location};`
-
     try {
         const response = await axios.request(options);
 
@@ -84,7 +80,6 @@ async function getImageIdHandler(req, res) {
             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
         }
     };
-
     try {
         const response = await axios.request(options);
         const datax = response.data;
@@ -145,13 +140,11 @@ async function getResturaunts(req, res) {
         res.sendStatus(500);
     }
 }
-
 function addFavouriteHandler(req, res) {
     const restaurantData = req.body;
     const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count)
      VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING;`;
     const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
-    // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS LOCATION ID
     const sql2 = `INSERT INTO favourite_list (location_id) VALUES ($1);`
     const value2 = [restaurantData.location_id];
     client.query(sql, value)
@@ -290,7 +283,6 @@ function addBookingHandler(req, res) {
     const sql = `INSERT INTO restaurant_details (r_location_id,r_image,r_name,r_address,r_max_reservation,r_reservation_cost,r_reservation_count)
      VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(r_location_id) DO NOTHING;`;
     const value = [restaurantData.r_location_id, restaurantData.r_image, restaurantData.r_name, restaurantData.r_address, restaurantData.r_max_reservation, restaurantData.r_reservation_cost, restaurantData.r_reservation_count];
-    // OTHER INSERT TO BE DONE INTO NEW TABLE IN SCHEMA CALLED FAV CONTAINS LOCATION ID
     const sql2 = `INSERT INTO restaurant_reservation (location_id,r_reservation_date,r_reservation_time,no_people_reservation)
      VALUES ($1,$2,$3,$4);`
     const value2 = [restaurantData.location_id, restaurantData.r_reservation_date, restaurantData.r_reservation_time, restaurantData.no_people_reservation];
