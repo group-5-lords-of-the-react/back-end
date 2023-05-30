@@ -241,8 +241,8 @@ async function HomeHandler(req, res) {
         params: {
             latitude: lat,
             longitude: long,
-            limit: '5',
-            distance: '12',
+            limit: '2',
+            distance: '15',
             lunit: 'km',
         },
         headers: {
