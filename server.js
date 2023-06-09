@@ -31,7 +31,7 @@ server.get('/checkBookExist/:id', checkBookExistHandler)
 
 
 
-async function getResturauntByIdHandler(req, res) {
+async function getResturauntByIdHandler(req, res,next) {
     const { location } = req.query;
     const options = {
         method: 'GET',
@@ -486,13 +486,7 @@ function deleteBookingHandler(req, res) {
         })
 }
 
-function errorHandler(error, req, res) {
-    const err = {
-        status: 500,
-        responseText: "Sorry, something went wrong"
-    }
-    res.status(500).send(err);
-}
+
 
 
 
@@ -528,7 +522,13 @@ function checkBookExistHandler(req, res) {
         })
 
 }
-
+function errorHandler(error, req, res) {
+    const err = {
+        status: 500,
+        responseText: "Sorry, something went wrong"
+    }
+    res.status(500).send(err);
+}
 client.connect()
     .then(() => {
 
@@ -541,35 +541,5 @@ client.connect()
 
 
 
-// server.get('/Listrestaurants', async function Listrestaurants(req, res) {
 
-
-
-//     const options = {
-//         method: 'GET',
-//         url: 'https://travel-advisor.p.rapidapi.com/restaurants/list-by-latlng',
-//         params: {
-//             latitude: '29.52667',
-//             longitude: '35.00778',
-//             limit: '30',
-//             currency: 'USD',
-//             distance: '6',
-//             open_now: 'false',
-//             lunit: 'km',
-//             lang: 'en_US'
-//         },
-//         headers: {
-//             'X-RapidAPI-Key': process.env.APIKEY,
-//             'X-RapidAPI-Host': 'travel-advisor.p.rapidapi.com'
-//           }
-//     }
-
-//     try {
-//         const response = await axios.request(options);
-//         console.log(response.data);
-//         res.send(response.data)
-//     } catch (error) {
-//         console.error(error);
-//     }
-// });
 
